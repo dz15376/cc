@@ -14,10 +14,10 @@ pcb_t pcb[ 3 ], *current = NULL;
 void scheduler( ctx_t* ctx ) {
   if      ( current == &pcb[ 0 ] ) {
     memcpy( &pcb[ 0 ].ctx, ctx, sizeof( ctx_t ) ); // preserve P_1
-    memcpy( ctx, &pcb[ 1 ].ctx, sizeof( ctx_t ) ); // restore  P_2
-    current = &pcb[ 1 ];
+    memcpy( ctx, &pcb[ 0 ].ctx, sizeof( ctx_t ) ); // restore  P_2
+    current = &pcb[ 0 ];
   }
-  else if ( current == &pcb[ 1 ] ) {
+  /*else if ( current == &pcb[ 1 ] ) {
     memcpy( &pcb[ 1 ].ctx, ctx, sizeof( ctx_t ) ); // preserve P_2
     memcpy( ctx, &pcb[ 2 ].ctx, sizeof( ctx_t ) ); // restore  P_1
     current = &pcb[ 2 ];
@@ -27,7 +27,7 @@ void scheduler( ctx_t* ctx ) {
     memcpy( &pcb[ 2 ].ctx, ctx, sizeof( ctx_t ) ); // preserve P_2
     memcpy( ctx, &pcb[ 0 ].ctx, sizeof( ctx_t ) ); // restore  P_1
     current = &pcb[ 0 ];
-  }
+  }*/
 
   return;
 }
@@ -50,10 +50,10 @@ void hilevel_handler_rst(ctx_t* ctx) {
   memset( &pcb[ 0 ], 0, sizeof( pcb_t ) );
   pcb[ 0 ].pid      = 1;
   pcb[ 0 ].ctx.cpsr = 0x50;
-  pcb[ 0 ].ctx.pc   = ( uint32_t )( &main_P3 );
-  pcb[ 0 ].ctx.sp   = ( uint32_t )( &tos_P3  );
+  pcb[ 0 ].ctx.pc   = ( uint32_t )( &main_console );
+  pcb[ 0 ].ctx.sp   = ( uint32_t )( &tos_console  );
 
-  memset( &pcb[ 1 ], 0, sizeof( pcb_t ) );
+/*memset( &pcb[ 1 ], 0, sizeof( pcb_t ) );
   pcb[ 1 ].pid      = 2;
   pcb[ 1 ].ctx.cpsr = 0x50;
   pcb[ 1 ].ctx.pc   = ( uint32_t )( &main_P4 );
@@ -63,7 +63,7 @@ void hilevel_handler_rst(ctx_t* ctx) {
   pcb[ 2 ].pid      = 2;
   pcb[ 2 ].ctx.cpsr = 0x50;
   pcb[ 2 ].ctx.pc   = ( uint32_t )( &main_P5 );
-  pcb[ 2 ].ctx.sp   = ( uint32_t )( &tos_P5 );
+  pcb[ 2 ].ctx.sp   = ( uint32_t )( &tos_P5 );*/
 
   TIMER0->Timer1Load  = 0x00100000; // select period = 2^20 ticks ~= 1 sec
   TIMER0->Timer1Ctrl  = 0x00000002; // select 32-bit   timer

@@ -17,9 +17,6 @@ SECTIONS {
   tos_irq = .;
   /* allocate stack for console           */
   .       = . + 0x00001000;
-  tos_P3  = .;
-  .       = . + 0x00001000;
-  tos_P4  = .;
-  .       = . + 0x00001000;
-  tos_P5  = .;
+  tos_console  = .;
+
   }
