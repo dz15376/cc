@@ -9,7 +9,9 @@
  *   can be created, and neither is able to complete.
  */
 
-pcb_t pcb[ 3 ], *current = NULL;
+pcb_t pcb[ 10 ], *current = NULL;
+int num_pcb = 0;
+
 
 void scheduler( ctx_t* ctx ) {
   if      ( current == &pcb[ 0 ] ) {
@@ -28,7 +30,6 @@ void scheduler( ctx_t* ctx ) {
     memcpy( ctx, &pcb[ 0 ].ctx, sizeof( ctx_t ) ); // restore  P_1
     current = &pcb[ 0 ];
   }*/
-
   return;
 }
 
@@ -45,13 +46,16 @@ void hilevel_handler_rst(ctx_t* ctx) {
    *   processor via the IRQ interrupt signal, then
    * - enabling IRQ interrupts.
    */
-
+  for( int i = 0; i<10; i++){
+    pcb[i].ctx.active=0;
+  }
 
   memset( &pcb[ 0 ], 0, sizeof( pcb_t ) );
   pcb[ 0 ].pid      = 1;
   pcb[ 0 ].ctx.cpsr = 0x50;
   pcb[ 0 ].ctx.pc   = ( uint32_t )( &main_console );
   pcb[ 0 ].ctx.sp   = ( uint32_t )( &tos_console  );
+  pcb[ 0 ].ctx.active = 1;
 
 /*memset( &pcb[ 1 ], 0, sizeof( pcb_t ) );
   pcb[ 1 ].pid      = 2;
@@ -109,7 +113,31 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
       ctx->gpr[ 0 ] = n;
       break;
     }
-    default   : { // 0x?? => unknown/unsupported
+    case 0x03   : { // 0x3 => fork
+      for( int i = 0; i<10; i++){
+        if (pcb[i].ctx.active == 0)
+          num_pcb = i;
+          break;
+      }
+      memset( &pcb[num_pcb], 0, sizeof( pcb_t ) );
+      pcb[num_pcb].pid      = num_pcb; //set id for process
+      memcpy( &pcb[num_pcb].ctx, ctx, sizeof( ctx_t ) );
+      pcb[num_pcb].ctx.gpr[0] = 0; //return id 0 for child
+      ctx->gpr[0] = num_pcb; //return the child id to parent
+      pcb[num_pcb].ctx.sp = &tos_console + (0x1000 * num_pcb); //copy stack from parent
+      memcpy ( &pcb[num_pcb].ctx.sp, ctx->sp, 0x1000);
+      pcb[num_pcb].ctx.pc = ctx->pc; //copy pc from parent
+      pcb[num_pcb].ctx.active = 1; //activate the process
+      break;
+    }
+
+    case 0x05 : { // => exec
+      ctx->pc = ctx->gpr[0];
+      break;
+    }
+
+    case 0x04 : { // => kill
+      pcb[ctx->gpr[0]].ctx.active = 0;
       break;
     }
   }

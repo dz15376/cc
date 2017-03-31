@@ -34,6 +34,7 @@
 
  typedef struct {
    uint32_t cpsr, pc, gpr[ 13 ], sp, lr;
+   int active;
  } ctx_t;
 
  typedef struct {
